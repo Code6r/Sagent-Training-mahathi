@@ -15,13 +15,16 @@ public class TaskController {
     public TaskController(TaskService service){ this.service = service; }
 
     @GetMapping
-    public List<Task> getAll(@RequestParam(required = false) Long habitId){
+    public List<Task> getAll(
+            @RequestParam(name = "habitId", required = false) Long habitId,
+            @RequestParam(name = "userId", required = false) Long userId){
         if (habitId != null) return service.getByHabitId(habitId);
-        return service.getAll();
+        if (userId != null) return service.getByUserId(userId);
+        return List.of();
     }
 
     @GetMapping("/{id}")
-    public Task getById(@PathVariable Long id){
+    public Task getById(@PathVariable(name = "id") Long id){
         return service.getById(id);
     }
 
@@ -31,12 +34,12 @@ public class TaskController {
     }
 
     @PutMapping("/{id}")
-    public Task update(@PathVariable Long id, @RequestBody Task task){
+    public Task update(@PathVariable(name = "id") Long id, @RequestBody Task task){
         return service.update(id, task);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id){
+    public void delete(@PathVariable(name = "id") Long id){
         service.delete(id);
     }
 }

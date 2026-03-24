@@ -16,17 +16,17 @@ public class HistoryController {
 
     @GetMapping
     public List<History> getAll(
-            @RequestParam(required = false) Long userId,
-            @RequestParam(required = false) Long taskId,
-            @RequestParam(required = false) Long habitId){
+            @RequestParam(name = "userId", required = false) Long userId,
+            @RequestParam(name = "taskId", required = false) Long taskId,
+            @RequestParam(name = "habitId", required = false) Long habitId){
         if (userId != null)  return service.getByUserId(userId);
         if (taskId != null)  return service.getByTaskId(taskId);
         if (habitId != null) return service.getByHabitId(habitId);
-        return service.getAll();
+        return List.of();
     }
 
     @GetMapping("/{id}")
-    public History getById(@PathVariable Long id){
+    public History getById(@PathVariable(name = "id") Long id){
         return service.getById(id);
     }
 
@@ -36,12 +36,12 @@ public class HistoryController {
     }
 
     @PutMapping("/{id}")
-    public History update(@PathVariable Long id, @RequestBody History history){
+    public History update(@PathVariable(name = "id") Long id, @RequestBody History history){
         return service.update(id, history);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id){
+    public void delete(@PathVariable(name = "id") Long id){
         service.delete(id);
     }
 }

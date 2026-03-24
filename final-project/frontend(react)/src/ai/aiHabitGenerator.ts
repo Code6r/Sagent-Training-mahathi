@@ -1,7 +1,7 @@
 const GEMINI_API_KEY = import.meta.env.VITE_GEMINI_API_KEY;
 
 export const generateHabitPlan = async (goal: string): Promise<string[]> => {
-  if (GEMINI_API_KEY) {
+  if (GEMINI_API_KEY && GEMINI_API_KEY !== 'YOUR_GEMINI_API_KEY') {
     try {
       const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${GEMINI_API_KEY}`, {
         method: 'POST',
@@ -14,12 +14,17 @@ export const generateHabitPlan = async (goal: string): Promise<string[]> => {
           }]
         })
       });
-      const data = await response.json();
-      const rawText = data.candidates[0].content.parts[0].text;
-      const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-      return JSON.parse(cleanJson);
+      
+      if (response.ok) {
+        const data = await response.json();
+        const rawText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+        if (rawText) {
+          const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
+          return JSON.parse(cleanJson);
+        }
+      }
     } catch (e) {
-      console.error("Gemini AI Generation failed", e);
+      console.error("Gemini AI Generation failed, using fallbacks.", e);
     }
   }
 
@@ -35,20 +40,20 @@ export const generateHabitPlan = async (goal: string): Promise<string[]> => {
     ];
   }
   
-  if (keywords.includes('front') || keywords.includes('react') || keywords.includes('dev')) {
+  if (keywords.includes('front') || keywords.includes('react') || keywords.includes('dev') || keywords.includes('code') || keywords.includes('leetcode') || keywords.includes('algorithm')) {
     return [
-      "Read 1 page of React/Framework docs",
-      "Build a tiny isolated component",
-      "Review PRs or open source code for 10 mins",
-      "Solve 1 basic algorithm challenge"
+      "Solve 1 prioritized LeetCode problem",
+      "Read 1 page of technical documentation",
+      "Review or write 30 lines of clean code",
+      "Study one fundamental CS concept or pattern"
     ];
   }
-
-  if (keywords.includes('health') || keywords.includes('weight') || keywords.includes('fit')) {
+  
+  if (keywords.includes('health') || keywords.includes('weight') || keywords.includes('fit') || keywords.includes('gym')) {
     return [
       "Drink 500ml of water right after waking",
       "Do a 10-minute stretching routine",
-      "Eat one serving of vegetables",
+      "Eat one serving of high-quality protein",
       "Walk outside for at least 15 minutes",
     ];
   }

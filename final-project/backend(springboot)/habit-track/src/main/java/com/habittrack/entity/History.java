@@ -11,7 +11,11 @@ public class History {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long historyId;
 
+    @Column(name = "task_id_v2")
     private Long taskId;
+
+    @Column(name = "task_id")
+    private Long legacyTaskId;
     private Long habitId;
     private Long userId;
     private String completedAt;   // ISO string e.g. "2026-03-12T17:00:00"
@@ -30,8 +34,14 @@ public class History {
     public Long getHistoryId() { return historyId; }
     public void setHistoryId(Long historyId) { this.historyId = historyId; }
 
-    public Long getTaskId() { return taskId; }
+    public Long getTaskId() { 
+        if (taskId != null) return taskId;
+        return legacyTaskId;
+    }
     public void setTaskId(Long taskId) { this.taskId = taskId; }
+
+    public Long getLegacyTaskId() { return legacyTaskId; }
+    public void setLegacyTaskId(Long legacyTaskId) { this.legacyTaskId = legacyTaskId; }
 
     public Long getHabitId() { return habitId; }
     public void setHabitId(Long habitId) { this.habitId = habitId; }

@@ -12,14 +12,14 @@ export interface StreakStats {
  * Calculate streak stats for a habit.
  * A day counts as "active" if AT LEAST ONE task under this habit was completed on that day.
  */
-export const calculateStreakStats = (history: History[], taskIds: number[]): StreakStats => {
+export const calculateStreakStats = (history: History[], taskIds: number[], habitId?: number): StreakStats => {
   const empty = { currentStreak: 0, longestStreak: 0, consistencyScore: 0, successProbability: 0 };
 
-  if (!history || !taskIds || taskIds.length === 0) return empty;
+  if (!history || ((!taskIds || taskIds.length === 0) && !habitId)) return empty;
 
-  // Only consider completions for this habit's tasks — SKIP entries without completedAt
+  // Only consider completions for this habit — Match by TaskId OR HabitId
   const taskHistory = history.filter(
-    (h) => h && taskIds.includes(h.taskId) && h.completedAt && typeof h.completedAt === 'string'
+    (h) => h && (taskIds.includes(h.taskId) || (habitId && h.habitId === habitId)) && h.completedAt && typeof h.completedAt === 'string'
   );
 
   if (taskHistory.length === 0) return empty;

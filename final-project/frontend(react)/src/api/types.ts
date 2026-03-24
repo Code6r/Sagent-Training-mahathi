@@ -3,6 +3,10 @@ export interface User {
   name: string;
   email: string;
   password?: string;
+  phone?: string;
+  dob?: string;
+  age?: number;
+  profession?: string;
   preferences?: Record<string, any>;
 }
 
@@ -13,6 +17,7 @@ export interface Habit {
   description: string;
   difficulty: 'EASY' | 'MEDIUM' | 'HARD';
   category: 'HEALTH' | 'CAREER' | 'LEARNING' | 'MINDFULNESS';
+  streaks?: number;
   createdAt: string;
   updatedAt: string;
   dependsOnId?: number;
