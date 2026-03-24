@@ -6,23 +6,25 @@ import { useHistory } from '../hooks/useHistory';
 import { HabitHeatmap } from '../components/HabitHeatmap';
 import { calculateStreakStats } from '../utils/streakEngine';
 import { ArrowLeft, Trash2, Calendar, Target, Award, Zap, Check, Plus, Flame } from 'lucide-react';
+import { format } from 'date-fns';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function HabitDetails() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { habits, deleteHabit } = useHabits();
-  const { tasks, createTask, deleteTask } = useTasks(Number(id));  // fetch by habitId
+  const { tasks, createTask, deleteTask, updateTask } = useTasks(Number(id));  // fetch by habitId
   const { history, createHistory } = useHistory();
   const [newTaskTitle, setNewTaskTitle] = useState('');
+  const [newTaskDueDate, setNewTaskDueDate] = useState(format(new Date(), 'yyyy-MM-dd'));
   const [isAddingTask, setIsAddingTask] = useState(false);
 
   const habit = habits.find((h) => h.id === Number(id));
   const habitTasks = tasks.filter((t) => t && t.habitId === Number(id));
   const taskIds = habitTasks.map((t) => t.id);
   let stats = { currentStreak: 0, longestStreak: 0, consistencyScore: 0, successProbability: 0 };
-  try { stats = calculateStreakStats(history ?? [], taskIds); } catch {}
-  const today = new Date().toISOString().split('T')[0];
+  try { stats = calculateStreakStats(history ?? [], taskIds, Number(id)); } catch {}
+  const today = format(new Date(), 'yyyy-MM-dd');
 
   if (!habit) {
     return (
@@ -49,18 +51,20 @@ export default function HabitDetails() {
         habitId: habit.id,
         title: newTaskTitle.trim(),
         completed: false,
-        dueDate: new Date().toISOString(),
+        dueDate: newTaskDueDate,
       });
     } catch (err) {
       console.error('Failed to create task', err);
     } finally {
       setNewTaskTitle('');
+      setNewTaskDueDate(format(new Date(), 'yyyy-MM-dd'));
       setIsAddingTask(false);
     }
   };
 
   const handleCompleteTask = (taskId: number) => {
     createHistory({ taskId, habitId: Number(id) });
+    updateTask({ id: taskId, data: { completed: true } });
   };
 
   const difficultyStyle = {
@@ -114,7 +118,7 @@ export default function HabitDetails() {
             <h3 className="text-xl font-bold text-slate-800">Today's Tasks</h3>
             {habitTasks.length > 0 && (
               <span className="text-sm text-slate-500 bg-slate-100 px-3 py-1 rounded-full font-medium">
-                {habitTasks.filter(t => history.some(h => h.taskId === t.id && h.completedAt?.startsWith(today))).length}/{habitTasks.length} done
+                {habitTasks.filter(t => t.completed || history.some(h => h.taskId === t.id && h.completedAt?.startsWith(today))).length}/{habitTasks.length} done
               </span>
             )}
           </div>
@@ -131,7 +135,7 @@ export default function HabitDetails() {
                 </motion.p>
               ) : (
                 habitTasks.map((task) => {
-                  const isCompletedToday = history.some(
+                  const isCompletedToday = task.completed || history.some(
                     (h) => h.taskId === task.id && h.completedAt?.startsWith(today)
                   );
                   return (
@@ -160,9 +164,16 @@ export default function HabitDetails() {
                         >
                           <Check size={14} strokeWidth={3} />
                         </motion.button>
-                        <span className={`font-medium text-sm truncate ${isCompletedToday ? 'line-through text-slate-400' : 'text-slate-800'}`}>
-                          {task.title}
-                        </span>
+                        <div className="flex flex-col min-w-0">
+                          <span className={`font-semibold text-sm truncate ${isCompletedToday ? 'line-through text-slate-400' : 'text-slate-800'}`}>
+                            {task.title}
+                          </span>
+                          {task.dueDate && (
+                             <span className="text-[10px] text-slate-400 flex items-center gap-1 mt-0.5 font-medium uppercase tracking-tight">
+                               <Calendar size={10} /> {task.dueDate.split('T')[0]}
+                             </span>
+                          )}
+                        </div>
                       </div>
                       <button
                         onClick={() => deleteTask(task.id)}
@@ -179,21 +190,29 @@ export default function HabitDetails() {
           </div>
 
           {/* Add Task Form */}
-          <form onSubmit={handleAddTask} className="flex gap-2">
-            <input
-              type="text"
-              value={newTaskTitle}
-              onChange={(e) => setNewTaskTitle(e.target.value)}
-              placeholder="e.g. Read 10 pages..."
-              className="flex-1 px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-sm bg-slate-50 text-slate-900 placeholder-slate-400"
-            />
+          <form onSubmit={handleAddTask} className="space-y-3">
+            <div className="flex gap-2">
+              <input
+                type="text"
+                value={newTaskTitle}
+                onChange={(e) => setNewTaskTitle(e.target.value)}
+                placeholder="Task name..."
+                className="flex-[2] px-4 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-sm bg-slate-50 text-slate-900 placeholder-slate-400"
+              />
+              <input
+                type="date"
+                value={newTaskDueDate}
+                onChange={(e) => setNewTaskDueDate(e.target.value)}
+                className="flex-1 px-3 py-2.5 border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none text-xs bg-slate-50 text-slate-600"
+              />
+            </div>
             <motion.button
-              whileTap={{ scale: 0.95 }}
+              whileTap={{ scale: 0.98 }}
               type="submit"
               disabled={isAddingTask || !newTaskTitle.trim()}
-              className="flex items-center justify-center px-4 py-2.5 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-medium gap-1.5"
+              className="w-full flex items-center justify-center px-4 py-3 bg-slate-900 text-white rounded-xl hover:bg-slate-800 transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-sm font-bold gap-2 shadow-lg shadow-slate-200"
             >
-              <Plus size={16} /> Add Task
+              {isAddingTask ? <div className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full animate-spin" /> : <><Plus size={18} /> Create New Task</>}
             </motion.button>
           </form>
         </div>

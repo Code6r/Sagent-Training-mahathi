@@ -9,6 +9,9 @@ import FocusMode from './pages/FocusMode';
 import Journal from './pages/Journal';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
+import ProgressHistory from './pages/ProgressHistory';
+import Leaderboard from './pages/Leaderboard';
+import Profile from './pages/Profile';
 
 // Error boundary to prevent white-screen crashes
 class ErrorBoundary extends React.Component<{ children: React.ReactNode }, { hasError: boolean; error: string }> {
@@ -59,8 +62,11 @@ function App() {
           <Route index element={<Dashboard />} />
           <Route path="habit/:id" element={<HabitDetails />} />
           <Route path="analytics" element={<Analytics />} />
+          <Route path="leaderboard" element={<Leaderboard />} />
           <Route path="ai-insights" element={<AIInsights />} />
           <Route path="journal" element={<Journal />} />
+          <Route path="progress-history" element={<ProgressHistory />} />
+          <Route path="profile" element={<Profile />} />
         </Route>
         <Route path="/focus" element={<ProtectedRoute><FocusMode /></ProtectedRoute>} />
       </Routes>

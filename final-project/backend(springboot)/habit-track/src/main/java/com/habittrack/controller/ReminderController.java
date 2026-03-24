@@ -23,7 +23,7 @@ public class ReminderController {
     }
 
     @GetMapping("/{id}")
-    public Reminder getById(@PathVariable Long id){
+    public Reminder getById(@PathVariable(name = "id") Long id){
         return service.getById(id);
     }
 
@@ -33,12 +33,12 @@ public class ReminderController {
     }
 
     @PutMapping("/{id}")
-    public Reminder update(@PathVariable Long id,@RequestBody Reminder reminder){
+    public Reminder update(@PathVariable(name = "id") Long id,@RequestBody Reminder reminder){
         return service.update(id,reminder);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id){
+    public void delete(@PathVariable(name = "id") Long id){
         service.delete(id);
     }
 }

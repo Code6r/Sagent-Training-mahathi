@@ -7,6 +7,10 @@ export default function Signup() {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [dob, setDob] = useState('');
+  const [age, setAge] = useState('');
+  const [profession, setProfession] = useState('Student (School/College)');
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const navigate = useNavigate();
@@ -16,7 +20,15 @@ export default function Signup() {
     setIsLoading(true);
     setError('');
     try {
-      const response = await userApi.signup({ name, email, password });
+      const response = await userApi.signup({ 
+        name, 
+        email, 
+        password, 
+        phone, 
+        dob, 
+        age: parseInt(age) || null, 
+        profession 
+      });
       localStorage.setItem('token', response.token);
       localStorage.setItem('user', JSON.stringify(response.user));
       navigate('/');
@@ -41,39 +53,68 @@ export default function Signup() {
 
         {error && <div className="mb-6 p-4 bg-red-50 text-red-600 rounded-xl text-sm font-medium border border-red-100">{error}</div>}
 
-        <form onSubmit={handleSignup} className="space-y-6">
+        <form onSubmit={handleSignup} className="space-y-4">
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Full Name</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Full Name *</label>
             <input 
-              type="text" 
-              required
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+              type="text" required value={name} onChange={(e) => setName(e.target.value)}
+              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all"
               placeholder="John Doe"
             />
           </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Email Address</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Email Address *</label>
             <input 
-              type="email" 
-              required
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+              type="email" required value={email} onChange={(e) => setEmail(e.target.value)}
+              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all"
               placeholder="you@example.com"
             />
           </div>
+          <div className="grid grid-cols-2 gap-4">
+             <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Phone Number *</label>
+                <input 
+                  type="tel" required value={phone} onChange={(e) => setPhone(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                  placeholder="+1 234 567 8900"
+                />
+             </div>
+             <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Date of Birth *</label>
+                <input 
+                  type="date" required value={dob} onChange={(e) => setDob(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all text-slate-600"
+                />
+             </div>
+          </div>
+          <div className="grid grid-cols-2 gap-4">
+             <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Age</label>
+                <input 
+                  type="number" value={age} onChange={(e) => setAge(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+                  placeholder="24"
+                />
+             </div>
+             <div>
+                <label className="block text-sm font-semibold text-slate-700 mb-1">Profession *</label>
+                <select 
+                  required value={profession} onChange={(e) => setProfession(e.target.value)}
+                  className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all text-slate-700"
+                >
+                  <option value="Student (School/College)">Student (School/College)</option>
+                  <option value="Working Professional">Working Professional</option>
+                  <option value="Self Employed">Self Employed</option>
+                  <option value="Business">Business</option>
+                </select>
+             </div>
+          </div>
           <div>
-            <label className="block text-sm font-semibold text-slate-700 mb-2">Password</label>
+            <label className="block text-sm font-semibold text-slate-700 mb-1">Password *</label>
             <input 
-              type="password"
-              required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full px-4 py-3 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all"
-              placeholder="••••••••"
-              minLength={6}
+              type="password" required value={password} onChange={(e) => setPassword(e.target.value)}
+              className="w-full px-4 py-2.5 bg-white border border-slate-200 rounded-xl focus:ring-2 focus:ring-primary-500 outline-none transition-all"
+              placeholder="••••••••" minLength={6}
             />
           </div>
           <button 
