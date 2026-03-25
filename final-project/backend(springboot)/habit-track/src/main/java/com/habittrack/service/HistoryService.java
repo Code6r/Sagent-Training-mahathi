@@ -14,7 +14,22 @@ public class HistoryService {
 
     public List<History> getAll(){ return repo.findAll(); }
 
-    public List<History> getByUserId(Long userId){ return repo.findByUserId(userId); }
+    public List<History> getByUserId(Long userId){ 
+        List<History> historyArr = repo.findByUserId(userId);
+        // Robust Migration: For primary user (Mahathi is ID 3, fallback 1), permanently fix any null or 0 userId history entries
+        if (userId != null && (userId == 1 || userId == 3)) {
+            boolean changed = false;
+            for (History h : historyArr) {
+                if (h.getUserId() == null || h.getUserId() == 0) {
+                    h.setUserId(userId);
+                    repo.save(h);
+                    changed = true;
+                }
+            }
+            if (changed) historyArr = repo.findByUserId(userId); // Refetch clean data
+        }
+        return historyArr; 
+    }
 
     public List<History> getByTaskId(Long taskId){ return repo.findByTaskId(taskId); }
 
@@ -24,9 +39,16 @@ public class HistoryService {
 
     public History create(History history){ return repo.save(history); }
 
-    public History update(Long id, History history){
-        history.setHistoryId(id);
-        return repo.save(history);
+    public History update(Long id, History updates){
+        History existing = repo.findById(id).orElse(null);
+        if (existing == null) return null;
+        
+        if (updates.getNotes() != null) existing.setNotes(updates.getNotes());
+        if (updates.getMood() != null) existing.setMood(updates.getMood());
+        if (updates.getStatus() != null) existing.setStatus(updates.getStatus());
+        if (updates.getCompletedAt() != null) existing.setCompletedAt(updates.getCompletedAt());
+        
+        return repo.save(existing);
     }
 
     public void delete(Long id){ repo.deleteById(id); }

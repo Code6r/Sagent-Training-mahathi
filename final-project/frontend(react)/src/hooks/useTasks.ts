@@ -2,11 +2,14 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { taskApi } from '../api/taskApi';
 import { Task } from '../api/types';
 
+import { getStoredUserId } from '../utils/auth';
+
 export const useTasks = (habitId?: number) => {
   const queryClient = useQueryClient();
+  const userId = getStoredUserId();
 
-  // If habitId provided → fetch tasks for that habit specifically; else fetch all
-  const queryKey = habitId ? ['tasks', habitId] : ['tasks'];
+  // If habitId provided → fetch tasks for that habit specifically; else fetch all for user
+  const queryKey = habitId ? ['tasks', userId, habitId] : ['tasks', userId];
   const queryFn = habitId
     ? () => taskApi.getTasksByHabit(habitId)
     : taskApi.getTasks;
@@ -15,6 +18,7 @@ export const useTasks = (habitId?: number) => {
     queryKey,
     queryFn,
     retry: 1,
+    enabled: userId > 0 && (habitId !== undefined ? habitId > 0 : true),
     select: (data) => {
       if (!Array.isArray(data)) return [];
       // If fetching by habit, ensure habitId is set on each task (backend might not return it)
@@ -23,13 +27,12 @@ export const useTasks = (habitId?: number) => {
         habitId: t.habitId ?? habitId,
       }));
     },
-    enabled: habitId !== undefined ? habitId > 0 : true,
   });
 
   const createTaskMutation = useMutation({
     mutationFn: taskApi.createTask,
     onMutate: async (newTask) => {
-      const qk = newTask.habitId ? ['tasks', newTask.habitId] : ['tasks'];
+      const qk = newTask.habitId ? ['tasks', userId, newTask.habitId] : ['tasks', userId];
       await queryClient.cancelQueries({ queryKey: qk });
       const previousTasks = queryClient.getQueryData<Task[]>(qk);
       // Optimistically add the task immediately (with temp id)
@@ -54,9 +57,9 @@ export const useTasks = (habitId?: number) => {
     },
     onSettled: (_data, _err, newTask) => {
       // Invalidate both the habit-specific and global task caches
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', userId] });
       if (newTask?.habitId) {
-        queryClient.invalidateQueries({ queryKey: ['tasks', newTask.habitId] });
+        queryClient.invalidateQueries({ queryKey: ['tasks', userId, newTask.habitId] });
       }
     },
   });
@@ -75,7 +78,7 @@ export const useTasks = (habitId?: number) => {
       if (context?.previousTasks) queryClient.setQueryData(queryKey, context.previousTasks);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', userId] });
     },
   });
 
@@ -91,7 +94,7 @@ export const useTasks = (habitId?: number) => {
       if (context?.previousTasks) queryClient.setQueryData(queryKey, context.previousTasks);
     },
     onSettled: () => {
-      queryClient.invalidateQueries({ queryKey: ['tasks'] });
+      queryClient.invalidateQueries({ queryKey: ['tasks', userId] });
     },
   });
 

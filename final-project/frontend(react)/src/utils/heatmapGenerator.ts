@@ -8,7 +8,12 @@ export const generateHeatmapData = (history: History[], days: number = 365) => {
   for (let i = days - 1; i >= 0; i--) {
     const targetDate = subDays(today, i);
     // Count how many tasks were completed on this exact date
-    const count = history.filter(h => isSameDay(new Date(h.completedAt), targetDate)).length;
+    let count = 0;
+    try {
+      count = history.filter(h => h.completedAt && isSameDay(new Date(h.completedAt), targetDate)).length;
+    } catch (e) {
+      count = 0;
+    }
     data.push({
       date: targetDate.toISOString().split('T')[0],
       count,

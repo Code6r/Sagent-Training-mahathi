@@ -8,7 +8,7 @@ public class Reminder {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long reminderId;
-
+    private Long habitId;
     private String message;
     private String time;
 
@@ -20,6 +20,14 @@ public class Reminder {
 
     public void setReminderId(Long reminderId) {
         this.reminderId = reminderId;
+    }
+
+    public Long getHabitId() {
+        return habitId;
+    }
+
+    public void setHabitId(Long habitId) {
+        this.habitId = habitId;
     }
 
     public String getMessage() {

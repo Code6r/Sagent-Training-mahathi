@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { generateCoachResponse } from '../ai/aiCoach';
-import { generateHabitPlan } from '../ai/aiHabitGenerator';
+import api from '../api/axiosClient';
+import { getStoredUserId } from '../utils/auth';
 import { motion } from 'framer-motion';
 import { Send, Bot, Sparkles } from 'lucide-react';
 
@@ -20,20 +20,59 @@ export default function AIInsights() {
     const userText = input;
     setMessages(prev => [...prev, { role: 'user', text: userText }]);
     setInput('');
-    setLoading(true);
-
-    const aiRes = await generateCoachResponse(userText, { currentStreak: 5, category: 'HEALTH' });
-    
-    setMessages(prev => [...prev, { role: 'ai', text: aiRes }]);
-    setLoading(false);
+    try {
+      const userId = getStoredUserId();
+      const response: any = await api.post('/ai/chat', { 
+        message: userText,
+        userId: userId
+      });
+      setMessages(prev => [...prev, { role: 'ai', text: response.reply }]);
+    } catch (err) {
+      console.error('AI Coach Error:', err);
+      setMessages(prev => [...prev, { role: 'ai', text: "I'm having trouble connecting to my brain right now. Please try again later!" }]);
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleGeneratePlan = async () => {
     if (!goalInput.trim()) return;
     setLoading(true);
-    const result = await generateHabitPlan(goalInput);
-    setPlan(result);
-    setLoading(false);
+    try {
+      const response: any = await api.post('/ai/generate-plan', { goal: goalInput });
+      setPlan(Array.isArray(response.plan) ? response.plan : []);
+    } catch (err) {
+      console.error('Plan Generation Error:', err);
+      setPlan([
+        "Research the first step of your goal",
+        "Set a specific schedule",
+        "Perform a 15-minute focused session",
+        "Log your progress"
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleApplyPlan = async () => {
+    if (plan.length === 0) return;
+    setLoading(true);
+    try {
+      const userId = getStoredUserId();
+      await api.post('/ai/save-plan', { 
+        userId, 
+        goal: goalInput, 
+        steps: plan 
+      });
+      alert('Career Roadmap added to your dashboard! 🚀');
+      setPlan([]);
+      setGoalInput('');
+    } catch (err) {
+      console.error('Save Plan Error:', err);
+      alert('Failed to add plan to dashboard. Please try again.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -141,8 +180,12 @@ export default function AIInsights() {
                   </li>
                 ))}
               </ul>
-              <button className="mt-6 w-full py-2 border-2 border-slate-200 text-slate-600 font-semibold rounded-lg hover:bg-slate-50 transition-colors">
-                Add All to Dashboard
+              <button 
+                onClick={handleApplyPlan}
+                disabled={loading}
+                className="mt-6 w-full py-3 bg-slate-900 text-white font-semibold rounded-xl hover:bg-slate-800 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+              >
+                {loading ? 'Adding...' : 'Add All to Dashboard'}
               </button>
             </motion.div>
           )}

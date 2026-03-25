@@ -15,13 +15,13 @@ public class HabitController {
     public HabitController(HabitService service){ this.service = service; }
 
     @GetMapping
-    public List<Habit> getAll(@RequestParam(required = false) Long userId){
+    public List<Habit> getAll(@RequestParam(name = "userId", required = false) Long userId){
         if (userId != null) return service.getByUserId(userId);
-        return service.getAll();
+        return List.of(); 
     }
 
     @GetMapping("/{id}")
-    public Habit getById(@PathVariable Long id){
+    public Habit getById(@PathVariable(name = "id") Long id){
         return service.getById(id);
     }
 
@@ -31,12 +31,12 @@ public class HabitController {
     }
 
     @PutMapping("/{id}")
-    public Habit update(@PathVariable Long id, @RequestBody Habit habit){
+    public Habit update(@PathVariable(name = "id") Long id, @RequestBody Habit habit){
         return service.update(id, habit);
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Long id){
+    public void delete(@PathVariable(name = "id") Long id){
         service.delete(id);
     }
 }

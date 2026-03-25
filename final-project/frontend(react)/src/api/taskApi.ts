@@ -1,5 +1,6 @@
 import api from './axiosClient';
 import { Task } from './types';
+import { getStoredUserId } from '../utils/auth';
 
 /** Normalize a raw backend task response to the frontend Task type */
 const normalizeTask = (t: any): Task => ({
@@ -14,7 +15,8 @@ const normalizeTask = (t: any): Task => ({
 
 export const taskApi = {
   getTasks: async (): Promise<Task[]> => {
-    const data = await api.get('/tasks');
+    const userId = getStoredUserId();
+    const data = await api.get(`/tasks?userId=${userId}`);
     const arr = Array.isArray(data) ? data : [];
     return arr.map(normalizeTask);
   },
@@ -28,6 +30,7 @@ export const taskApi = {
     return normalizeTask(data);
   },
   createTask: async (task: Partial<Task>): Promise<Task> => {
+    const userId = getStoredUserId();
     const payload = {
       title: task.title,
       name: task.title,
@@ -35,6 +38,7 @@ export const taskApi = {
       taskTitle: task.title,
       habitId: task.habitId,
       habit_id: task.habitId,
+      userId,
       completed: task.completed ?? false,
       dueDate: task.dueDate || new Date().toISOString(),
     };
