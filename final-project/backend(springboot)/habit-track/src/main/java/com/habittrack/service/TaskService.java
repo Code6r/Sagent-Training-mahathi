@@ -16,6 +16,8 @@ public class TaskService {
 
     public List<Task> getByHabitId(Long habitId){ return repo.findByHabitId(habitId); }
 
+    public List<Task> getByUserId(Long userId){ return repo.findByUserId(userId); }
+
     public Task getById(Long id){ return repo.findById(id).orElse(null); }
 
     public Task create(Task task){ return repo.save(task); }

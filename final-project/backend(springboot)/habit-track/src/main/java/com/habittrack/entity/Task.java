@@ -13,6 +13,8 @@ public class Task {
     private String taskName;
     private String status;      // "PENDING" | "DONE"
     private boolean completed;
+    private java.time.LocalDate dueDate;
+    private Long userId;
 
     public Task() {}
 
@@ -30,4 +32,10 @@ public class Task {
 
     public boolean isCompleted() { return completed; }
     public void setCompleted(boolean completed) { this.completed = completed; }
+
+    public java.time.LocalDate getDueDate() { return dueDate; }
+    public void setDueDate(java.time.LocalDate dueDate) { this.dueDate = dueDate; }
+
+    public Long getUserId() { return userId; }
+    public void setUserId(Long userId) { this.userId = userId; }
 }

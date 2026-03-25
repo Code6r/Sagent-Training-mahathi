@@ -15,8 +15,9 @@ public class TaskController {
     public TaskController(TaskService service){ this.service = service; }
 
     @GetMapping
-    public List<Task> getAll(@RequestParam(required = false) Long habitId){
+    public List<Task> getAll(@RequestParam(required = false) Long habitId, @RequestParam(required = false) Long userId){
         if (habitId != null) return service.getByHabitId(habitId);
+        if (userId != null) return service.getByUserId(userId);
         return service.getAll();
     }
 

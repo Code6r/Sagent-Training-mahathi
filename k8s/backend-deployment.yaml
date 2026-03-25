@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: habit-tracker-backend
+  labels:
+    app: habit-tracker-backend
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: habit-tracker-backend
+  template:
+    metadata:
+      labels:
+        app: habit-tracker-backend
+    spec:
+      containers:
+        - name: backend
+          image: habit-tracker-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8080
+          env:
+            - name: SPRING_PROFILES_ACTIVE
+              value: "prod"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: backend-service
+spec:
+  type: ClusterIP
+  selector:
+    app: habit-tracker-backend
+  ports:
+    - protocol: TCP
+      port: 8080
+      targetPort: 8080
