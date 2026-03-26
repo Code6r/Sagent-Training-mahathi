@@ -78,4 +78,4 @@ jobs:
 
       - name: Apply Kubernetes YAMLs
         if: github.ref == 'refs/heads/main'
-        run: kubectl apply -f k8s/
+        run: kubectl apply -f final-project/k8s/
