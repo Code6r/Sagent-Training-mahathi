@@ -1,9 +1,10 @@
-name: CI/CD Pipeline
+name: CI/CD Pipeline 100% Working
 
 on:
   push:
     branches:
       - main
+  workflow_dispatch:
 
 jobs:
   build-and-deploy:
@@ -11,59 +12,64 @@ jobs:
 
     steps:
       - name: Checkout Code
-        uses: actions/checkout@v3
-
-      - name: List Files (Debug)
-        run: ls -R
+        uses: actions/checkout@v4
 
       - name: Set up JDK 21
-        uses: actions/setup-java@v3
+        uses: actions/setup-java@v4
         with:
           java-version: '21'
           distribution: 'temurin'
           cache: maven
 
       - name: Build Backend (Maven)
-        working-directory: ./final-project/backend-springboot/habit-track
-        run: mvn clean package -DskipTests
+        working-directory: ./final-project/backend/habit-track
+        run: |
+          chmod +x mvnw
+          ./mvnw clean package -DskipTests
 
-      - name: Set up Node.js 18
-        uses: actions/setup-node@v3
+      - name: Set up Node.js 20
+        uses: actions/setup-node@v4
         with:
-          node-version: '18'
+          node-version: '20'
           cache: 'npm'
+          cache-dependency-path: './final-project/frontend/package-lock.json'
 
       - name: Build Frontend (npm install + build)
-        working-directory: ./final-project/frontend-react
+        working-directory: ./final-project/frontend
         run: |
-          npm install
+          npm install --legacy-peer-deps
           npm run build
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v2
+        if: github.ref == 'refs/heads/main'
+        uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKER_USERNAME }}
           password: ${{ secrets.DOCKER_PASSWORD }}
 
       - name: Build and Push Backend Docker Image
-        uses: docker/build-push-action@v4
+        if: github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v5
         with:
-          context: ./final-project/backend-springboot/habit-track
+          context: ./final-project/backend/habit-track
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/habit-tracker-backend:latest
 
       - name: Build and Push Frontend Docker Image
-        uses: docker/build-push-action@v4
+        if: github.ref == 'refs/heads/main'
+        uses: docker/build-push-action@v5
         with:
-          context: ./final-project/frontend-react
+          context: ./final-project/frontend
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/habit-tracker-frontend:latest
 
       - name: Deploy to Kubernetes Cluster
+        if: github.ref == 'refs/heads/main'
         uses: azure/k8s-set-context@v3
         with:
           method: kubeconfig
           kubeconfig: ${{ secrets.KUBE_CONFIG }}
 
       - name: Apply Kubernetes YAMLs
+        if: github.ref == 'refs/heads/main'
         run: kubectl apply -f k8s/
